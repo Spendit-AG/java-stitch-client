@@ -1,4 +1,4 @@
-package com.stitchdata.client;
+package de.spendit.stitchdata.client;
 
 import com.cognitect.transit.Reader;
 import com.cognitect.transit.TransitFactory;

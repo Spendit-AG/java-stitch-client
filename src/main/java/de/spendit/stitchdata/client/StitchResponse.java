@@ -1,4 +1,4 @@
-package com.stitchdata.client;
+package de.spendit.stitchdata.client;
 
 
 import jakarta.json.JsonObject;
