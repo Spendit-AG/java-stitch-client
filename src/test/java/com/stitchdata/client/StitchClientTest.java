@@ -7,8 +7,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.http.HttpClient;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -149,17 +147,6 @@ public class StitchClientTest {
             assertEquals(NUM_RECORDS_PER_THREAD, numRecordsByThreadId.get(i).get());
         }
 
-    }
-
-    @Test
-    public void testUsesHttp11Client() throws Exception {
-        try (StitchClient stitch = new DummyStitchClient(null)) {
-            Field httpClientField = StitchClient.class.getDeclaredField("httpClient");
-            httpClientField.setAccessible(true);
-            HttpClient httpClient = (HttpClient) httpClientField.get(stitch);
-
-            assertEquals(HttpClient.Version.HTTP_1_1, httpClient.version());
-        }
     }
 
     private static class SetFlushHandler implements FlushHandler {

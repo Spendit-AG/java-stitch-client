@@ -58,7 +58,7 @@ public class CallbackExampleTest {
     public void callbackExampleFlowShouldPushPeopleAndInvokeCallbackWithNames() throws IOException {
         Map[] people = new Map[]{
                 makePerson(1, "Jerry Garcia"),
-                makePerson(2, "Omar Rodgriguez Lopez"),
+                makePerson(2, "Omar Rodriguez Lopez"),
                 makePerson(3, "Nina Simone"),
                 makePerson(4, "Joni Mitchell"),
                 makePerson(5, "David Bowie")
@@ -79,7 +79,7 @@ public class CallbackExampleTest {
         assertEquals(people.length, stitch.receivedPeople.size());
         assertEquals(Arrays.asList(
                 "Jerry Garcia",
-                "Omar Rodgriguez Lopez",
+                "Omar Rodriguez Lopez",
                 "Nina Simone",
                 "Joni Mitchell",
                 "David Bowie"), flushHandler.names);

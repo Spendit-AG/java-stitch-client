@@ -51,7 +51,7 @@ public class SimpleExampleTest {
     public void simpleExampleFlowShouldPushAllPeople() throws IOException {
         Map<String, Object>[] people = new Map[]{
                 makePerson(1, "Jerry Garcia"),
-                makePerson(2, "Omar Rodgriguez Lopez"),
+                makePerson(2, "Omar Rodriguez Lopez"),
                 makePerson(3, "Nina Simone"),
                 makePerson(4, "Joni Mitchell"),
                 makePerson(5, "David Bowie")

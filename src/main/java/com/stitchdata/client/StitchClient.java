@@ -297,7 +297,13 @@ public class StitchClient implements Flushable, Closeable {
             case 504:
                 return "Gateway Timeout";
             default:
-                return statusCode < 500 ? "Client Error" : "Server Error";
+                if (statusCode >= 400 && statusCode < 500) {
+                    return "Client Error";
+                }
+                if (statusCode >= 500) {
+                    return "Server Error";
+                }
+                return "";
         }
     }
 
