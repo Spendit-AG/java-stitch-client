@@ -85,8 +85,6 @@ public class StitchClient implements Flushable, Closeable {
     private static final int HTTP_CONNECT_TIMEOUT = 1000 * 60 * 2;
     private static final String CONTENT_TYPE = "application/transit+json";
 
-    // HTTP properties
-    private final int connectTimeout = HTTP_CONNECT_TIMEOUT;
     private final String stitchUrl;
     private final HttpClient httpClient;
 
@@ -100,7 +98,6 @@ public class StitchClient implements Flushable, Closeable {
     // Buffer flush time parameters
     private final int batchSizeBytes;
     private final int batchDelayMillis;
-    private long lastFlushTime = System.currentTimeMillis();
 
     private final Buffer buffer;
     private final FlushHandler flushHandler;
@@ -169,7 +166,7 @@ public class StitchClient implements Flushable, Closeable {
         this.flushHandler = flushHandler;
         this.writeHandlers = TransitFactory.writeHandlerMap(writeHandlers);
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(connectTimeout))
+                .connectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT))
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
     }
@@ -246,7 +243,6 @@ public class StitchClient implements Flushable, Closeable {
         }
 
         int statusCode = response.statusCode();
-        String reasonPhrase = "";
         String contentType = response.headers().firstValue("Content-Type").orElse(null);
         JsonObject content = null;
 
@@ -256,7 +252,53 @@ public class StitchClient implements Flushable, Closeable {
             JsonReader rdr = Json.createReader(new StringReader(response.body()));
             content = rdr.readObject();
         }
+
+        // Build a more informative reason phrase
+        String reasonPhrase = getReasonPhrase(statusCode, content);
+
         return new StitchResponse(statusCode, reasonPhrase, content);
+    }
+
+    private static String getReasonPhrase(int statusCode, JsonObject jsonContent) {
+        // Get standard HTTP reason phrase
+        String standardPhrase = getStandardReasonPhrase(statusCode);
+
+        // Try to extract more context from JSON response body if available
+        if (jsonContent != null && jsonContent.containsKey("message")) {
+            String message = jsonContent.getString("message");
+            return standardPhrase + " - " + message;
+        }
+
+        return standardPhrase;
+    }
+
+    private static String getStandardReasonPhrase(int statusCode) {
+        switch (statusCode) {
+            case 400:
+                return "Bad Request";
+            case 401:
+                return "Unauthorized";
+            case 403:
+                return "Forbidden";
+            case 404:
+                return "Not Found";
+            case 409:
+                return "Conflict";
+            case 413:
+                return "Payload Too Large";
+            case 429:
+                return "Too Many Requests";
+            case 500:
+                return "Internal Server Error";
+            case 502:
+                return "Bad Gateway";
+            case 503:
+                return "Service Unavailable";
+            case 504:
+                return "Gateway Timeout";
+            default:
+                return statusCode < 500 ? "Client Error" : "Server Error";
+        }
     }
 
     private static boolean isJsonContentType(String contentTypeHeader) {
@@ -289,23 +331,23 @@ public class StitchClient implements Flushable, Closeable {
         }
     }
 
-    static String serializeEntries(List<Buffer.Entry> entries) throws UnsupportedEncodingException {
+    static String serializeEntries(List<Buffer.Entry> entries) {
         if (entries == null) {
             return null;
         }
 
-        ArrayList<Map> messages = new ArrayList<Map>();
+        ArrayList<Map> messages = new ArrayList<>();
 
         for (Buffer.Entry entry : entries) {
             ByteArrayInputStream bais = new ByteArrayInputStream(entry.bytes);
             Reader reader = TransitFactory.reader(TransitFactory.Format.JSON, bais);
-            messages.add((Map) reader.read());
+            messages.add(reader.read());
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Writer writer = TransitFactory.writer(TransitFactory.Format.JSON, baos);
         writer.write(messages);
-        return baos.toString("UTF-8");
+        return baos.toString(StandardCharsets.UTF_8);
     }
 
     /**

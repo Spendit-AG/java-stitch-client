@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Use this to build instances of StitchClient.
  *
- * <h3>Basic usage</h3>
+ * <h2>Basic usage</h2>
  * <p>
  * Every client must have a client id, access token, and
  * namespace. You should have gotten these parameters when you set up
@@ -28,7 +28,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * <h3>Optionally set message defaults</h3>
+ * <h2>Optionally set message defaults</h2>
  * <p>
  * If your application will send messages into only one table, you can
  * set the table name and key names here with {@link
@@ -50,7 +50,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * <h3> Optionally tune batch parameters</h3>
+ * <h2>Optionally tune batch parameters</h2>
  * <p>
  * A StitchClient takes records (instances of {@link StitchMessage})
  * and submits them to Stitch in batches. A call to {@link

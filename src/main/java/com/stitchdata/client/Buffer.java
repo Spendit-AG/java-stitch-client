@@ -10,7 +10,7 @@ public class Buffer {
     static final int MAX_BATCH_SIZE_BYTES = 4000000;
     static final int MAX_MESSAGES_PER_BATCH = 10000;
 
-    private final Queue<Entry> queue = new LinkedList<Entry>();
+    private final Queue<Entry> queue = new LinkedList<>();
     private int availableBytes = 0;
 
     synchronized void put(Entry entry) {
@@ -32,7 +32,7 @@ public class Buffer {
             return null;
         }
 
-        ArrayList<Entry> entries = new ArrayList<Entry>();
+        ArrayList<Entry> entries = new ArrayList<>();
 
         // Start size at 2 to allow for opening and closing brackets
         int size = 2;

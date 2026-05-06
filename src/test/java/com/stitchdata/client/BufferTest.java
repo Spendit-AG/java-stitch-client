@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,8 +50,7 @@ public class BufferTest {
         buffer.put(new Buffer.Entry(baos.toByteArray(), null));
     }
 
-    public String takeBatchBody(int batchSizeBytes, int batchDelayMillis)
-            throws UnsupportedEncodingException {
+    public String takeBatchBody(int batchSizeBytes, int batchDelayMillis) {
         List<Buffer.Entry> entries = buffer.take(batchSizeBytes, batchDelayMillis);
         return entries == null ? null : StitchClient.serializeEntries(entries);
     }

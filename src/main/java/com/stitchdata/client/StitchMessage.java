@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class StitchMessage {
 
-    public static enum Action { UPSERT, SWITCH_VIEW };
+    public static enum Action {UPSERT, SWITCH_VIEW}
 
     private Action action;
     private String tableName;
@@ -131,7 +131,7 @@ public class StitchMessage {
      * will only update it if the sequence number on the incoming
      * record is greater than the sequenc enumber of the existing
      * record.
-     *
+     * <p>
      * For example, suppose we send in the following messages:
      *
      * <pre>
@@ -151,9 +151,9 @@ public class StitchMessage {
      *   .withKeyNames("order_id")
      *   .withData(data)
      *   .withSequence(2);
-     *}
+     * }
      * </pre>
-     *
+     * <p>
      * Regardless of the order in which the records are processed by
      * the loader, the end result will be that "status" for order
      * number 123 will be "completed".
