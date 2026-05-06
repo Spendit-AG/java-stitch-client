@@ -56,7 +56,7 @@ public class StitchClientTest {
             }
             for (Object record : records) {
                 Map data = (Map) ((Map) record).get("data");
-                int threadId = ((Long) ((Map) data).get("threadId")).intValue();
+                int threadId = ((Long) data.get("threadId")).intValue();
                 counts[threadId]++;
                 numRecordsByThreadId.get(threadId).incrementAndGet();
             }

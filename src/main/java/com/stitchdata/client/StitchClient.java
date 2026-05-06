@@ -114,10 +114,14 @@ public class StitchClient implements Flushable, Closeable {
     }
 
 
-    private byte[] messageToBytes(StitchMessage message) {
+    private byte[] messageToBytes(StitchMessage message) throws IllegalArgumentException {
         HashMap map = new HashMap();
 
-        switch (message.getAction()) {
+        StitchMessage.Action action = message.getAction();
+        if (action == null) {
+            throw new IllegalArgumentException("Action must not be null");
+        }
+        switch (action) {
             case UPSERT:
                 map.put("action", "upsert");
                 putWithDefault(map, "key_names", message.getKeyNames(), keyNames);
@@ -126,8 +130,6 @@ public class StitchClient implements Flushable, Closeable {
             case SWITCH_VIEW:
                 map.put("action", "switch_view");
                 break;
-            default:
-                throw new IllegalArgumentException("Action must not be null");
         }
 
         map.put("client_id", clientId);
@@ -219,7 +221,7 @@ public class StitchClient implements Flushable, Closeable {
      * @throws IOException     if there was an error communicating with
      *                         Stitch
      */
-    public void push(StitchMessage message, Object callbackArg) throws StitchException, IOException {
+    public void push(StitchMessage message, Object callbackArg) throws StitchException, IOException, IllegalArgumentException {
         buffer.put(new Buffer.Entry(messageToBytes(message), callbackArg));
         List<Buffer.Entry> batch = buffer.take(this.batchSizeBytes, this.batchDelayMillis);
         if (batch != null) {
@@ -249,8 +251,9 @@ public class StitchClient implements Flushable, Closeable {
         // Don't attempt to parse body for 5xx responses or if the
         // Content-Type doesn't explicitly state application/json.
         if (statusCode < 500 && isJsonContentType(contentType)) {
-            JsonReader rdr = Json.createReader(new StringReader(response.body()));
-            content = rdr.readObject();
+            try (JsonReader rdr = Json.createReader(new StringReader(response.body()))) {
+                content = rdr.readObject();
+            }
         }
 
         // Build a more informative reason phrase
@@ -303,7 +306,7 @@ public class StitchClient implements Flushable, Closeable {
                 if (statusCode >= 500) {
                     return "Server Error";
                 }
-                return "";
+                return "OK";
         }
     }
 
