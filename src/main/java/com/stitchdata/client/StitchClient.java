@@ -5,8 +5,10 @@ import com.cognitect.transit.TransitFactory;
 import com.cognitect.transit.WriteHandler;
 import com.cognitect.transit.Writer;
 import jakarta.json.Json;
+import jakarta.json.JsonString;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonValue;
 
 import java.io.*;
 import java.net.URI;
@@ -114,7 +116,7 @@ public class StitchClient implements Flushable, Closeable {
     }
 
 
-    private byte[] messageToBytes(StitchMessage message) throws IllegalArgumentException {
+    private byte[] messageToBytes(StitchMessage message) {
         HashMap map = new HashMap();
 
         StitchMessage.Action action = message.getAction();
@@ -221,7 +223,7 @@ public class StitchClient implements Flushable, Closeable {
      * @throws IOException     if there was an error communicating with
      *                         Stitch
      */
-    public void push(StitchMessage message, Object callbackArg) throws StitchException, IOException, IllegalArgumentException {
+    public void push(StitchMessage message, Object callbackArg) throws StitchException, IOException {
         buffer.put(new Buffer.Entry(messageToBytes(message), callbackArg));
         List<Buffer.Entry> batch = buffer.take(this.batchSizeBytes, this.batchDelayMillis);
         if (batch != null) {
@@ -268,8 +270,13 @@ public class StitchClient implements Flushable, Closeable {
 
         // Try to extract more context from JSON response body if available
         if (jsonContent != null && jsonContent.containsKey("message")) {
-            String message = jsonContent.getString("message");
-            return standardPhrase + " - " + message;
+            JsonValue messageValue = jsonContent.get("message");
+            if (messageValue != null && messageValue.getValueType() == JsonValue.ValueType.STRING) {
+                String message = ((JsonString) messageValue).getString();
+                if (!message.isEmpty()) {
+                    return standardPhrase + " - " + message;
+                }
+            }
         }
 
         return standardPhrase;
@@ -350,7 +357,12 @@ public class StitchClient implements Flushable, Closeable {
         for (Buffer.Entry entry : entries) {
             ByteArrayInputStream bais = new ByteArrayInputStream(entry.bytes);
             Reader reader = TransitFactory.reader(TransitFactory.Format.JSON, bais);
-            messages.add(reader.read());
+            Object decodedMessage = reader.read();
+            if (!(decodedMessage instanceof Map)) {
+                throw new IllegalArgumentException("Expected Transit message to decode to Map but got "
+                        + (decodedMessage == null ? "null" : decodedMessage.getClass().getName()));
+            }
+            messages.add((Map) decodedMessage);
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
